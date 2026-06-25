@@ -1,6 +1,5 @@
 flask
 gunicorn
-librosa
 soundfile
 numpy
 scipy
