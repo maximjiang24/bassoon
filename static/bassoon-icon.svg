@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" fill="none"
+     stroke="#b07d2e" stroke-linecap="round" stroke-linejoin="round">
+
+  <!-- ══ WING JOINT + LONG JOINT — two clean parallel tubes at ~48° ══ -->
+  <!-- Left tube (wing joint, lower) -->
+  <line x1="46"  y1="264" x2="218" y2="54"  stroke-width="10"/>
+  <!-- Right tube (long joint, upper) -->
+  <line x1="68"  y1="272" x2="240" y2="62"  stroke-width="10"/>
+
+  <!-- ══ BOOT JOINT — clean U-curve connecting the two tubes at the bottom ══ -->
+  <path d="M44 266 Q28 290 68 274" stroke-width="9" fill="none"/>
+  <!-- Boot cap: flat bar across the bottom -->
+  <line x1="32" y1="281" x2="70" y2="281"
+        stroke-width="6" stroke-linecap="round"
+        transform="rotate(-42 51 281)"/>
+
+  <!-- ══ BELL — flared cap at upper-right end, wider than the tube ══ -->
+  <path d="M218 54 L248 38 M240 62 L248 38 M236 28 Q248 22 262 34 Q256 48 244 46"
+        stroke-width="5" fill="none"/>
+
+  <!-- ══ BOCAL — S-curve from upper wing joint, curves left then forward ══ -->
+  <path d="M110 188
+           Q92 198 86 184
+           Q80 170 92 158
+           Q100 149 97 136"
+        stroke-width="6" fill="none"/>
+  <!-- Reed socket at bocal tip -->
+  <line x1="88" y1="128" x2="104" y2="120" stroke-width="5"/>
+  <line x1="88" y1="128" x2="92"  y2="140" stroke-width="3"/>
+
+  <!-- ══ KEYS — three long rods with pad cups along the body ══ -->
+  <!-- Main key rod -->
+  <line x1="116" y1="180" x2="182" y2="108" stroke-width="2.5"/>
+  <circle cx="116" cy="180" r="5.5" fill="#b07d2e" stroke="none"/>
+  <circle cx="149" cy="144" r="5.5" fill="#b07d2e" stroke="none"/>
+  <circle cx="182" cy="108" r="5.5" fill="#b07d2e" stroke="none"/>
+
+  <!-- Pad cups on main rod -->
+  <ellipse cx="133" cy="162" rx="7" ry="5"
+           transform="rotate(-45 133 162)" stroke-width="2.5" fill="none"/>
+  <ellipse cx="165" cy="126" rx="7" ry="5"
+           transform="rotate(-45 165 126)" stroke-width="2.5" fill="none"/>
+
+  <!-- Secondary rod (thumb key side) -->
+  <line x1="96"  y1="205" x2="136" y2="162" stroke-width="2.5"/>
+  <circle cx="96"  cy="205" r="4.5" fill="#b07d2e" stroke="none"/>
+  <circle cx="136" cy="162" r="4.5" fill="#b07d2e" stroke="none"/>
+
+  <!-- ══ TONE HOLES — oval holes along right tube ══ -->
+  <circle cx="82"  cy="228" r="8.5" stroke-width="3.5"/>
+  <circle cx="96"  cy="213" r="8.5" stroke-width="3.5"/>
+  <circle cx="110" cy="198" r="8.5" stroke-width="3.5"/>
+  <circle cx="124" cy="183" r="6"   stroke-width="3"/>
+
+  <!-- Upper oval holes -->
+  <ellipse cx="156" cy="148" rx="6.5" ry="5"
+           transform="rotate(-45 156 148)" stroke-width="3"/>
+  <ellipse cx="172" cy="131" rx="6.5" ry="5"
+           transform="rotate(-45 172 131)" stroke-width="3"/>
+  <ellipse cx="188" cy="114" rx="6"   ry="4.5"
+           transform="rotate(-45 188 114)" stroke-width="2.8"/>
+  <ellipse cx="204" cy="98"  rx="6"   ry="4.5"
+           transform="rotate(-45 204 98)"  stroke-width="2.8"/>
+
+</svg>

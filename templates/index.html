@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bassoon Intonation Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="icon" href="/static/bassoon-icon.svg" type="image/svg+xml"/>
+</head>
+<body>
+  <header>
+    <div class="header-row">
+      <div>
+        <h1>Bassoon Intonation Analyzer</h1>
+        <p class="subtitle">Record audio (and optionally webcam video) to analyze pitch stability and embouchure consistency</p>
+        <svg class="bocal-mark" width="12" height="80" viewBox="0 0 12 80"
+             aria-hidden="true" focusable="false">
+          <path d="M6,0 C6,20 2,30 6,40 C10,50 6,60 6,80"
+                stroke="#5C2E1A" stroke-width="1.5" fill="none" stroke-opacity="0.5"/>
+        </svg>
+      </div>
+      <button class="btn-help" id="btn-help" aria-label="How to read this">? How to read this</button>
+    </div>
+  </header>
+
+  <!-- Help modal -->
+  <div id="help-overlay" class="help-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="help-modal">
+      <div class="help-header">
+        <h2 id="help-title">How to use this tool</h2>
+        <button class="help-close" id="btn-help-close" aria-label="Close help">&times;</button>
+      </div>
+      <div class="help-body">
+
+        <div class="help-section">
+          <h3>Getting started</h3>
+          <p><strong>Record tab</strong> — Click <em>Start Recording</em> while you play your bassoon. The app listens through your microphone and measures how steadily you hold your pitch.</p>
+          <p><strong>Upload tab</strong> — Already have a WAV file? Upload it here to analyze a previous recording.</p>
+          <p><strong>Track embouchure with webcam</strong> — Check this box if you also want to record your face. The camera watches your lips, mouth, and jaw and checks whether your facial technique is affecting your pitch.</p>
+        </div>
+
+        <div class="help-section">
+          <h3>Summary numbers</h3>
+          <dl class="help-dl">
+            <dt>Rating</dt>
+            <dd>An overall grade — <em>Excellent, Good, Fair,</em> or <em>Needs work</em> — based on how steady your pitch was throughout the recording.</dd>
+
+            <dt>Stability score</dt>
+            <dd>A number from 0 to 1. Closer to <strong>1.0 = very steady pitch</strong>. Below 0.4 means noticeable wobble. Think of it like a percentage of steadiness.</dd>
+
+            <dt>Mean pitch</dt>
+            <dd>The average note you were playing — shown as a note name like "A4" and its frequency in Hz. This tells you <em>what</em> you played, not how well.</dd>
+
+            <dt>Mean bias</dt>
+            <dd>How far your pitch drifted from perfectly in tune, measured in <em>cents</em> (100 cents = one semitone). <strong>+10¢ means slightly sharp</strong> (too high). <strong>−10¢ means flat</strong> (too low). Anything within ±10¢ is generally fine.</dd>
+
+            <dt>Tendency</dt>
+            <dd>Whether you drift <em>Sharp</em> (too high), <em>Flat</em> (too low), or stay <em>Centered</em>. Useful for identifying a consistent habit.</dd>
+
+            <dt>Voiced %</dt>
+            <dd>What percentage of the recording had an actual musical note in it. If this is low, try playing louder or closer to the microphone.</dd>
+
+            <dt>Unstable regions</dt>
+            <dd>The number of short moments where your pitch wobbled significantly. Zero is ideal.</dd>
+
+            <dt>Embouchure (if webcam used)</dt>
+            <dd>A score from 0 to 1 showing how consistent your mouth shape was. Higher is better.</dd>
+
+            <dt>Overall |r| (if webcam used)</dt>
+            <dd>How strongly your embouchure movements overall connect to your pitch changes. Closer to 1 = your technique directly affects your intonation.</dd>
+          </dl>
+        </div>
+
+        <div class="help-section">
+          <h3>Graphs</h3>
+          <dl class="help-dl">
+            <dt>Pitch Contour</dt>
+            <dd>A line showing how your pitch moved up and down over time. <strong>A flat, horizontal line is ideal.</strong> Big swings or drift mean unstable intonation. The dashed line in the middle is perfectly in tune.</dd>
+
+            <dt>Stability Heatmap</dt>
+            <dd>Each colored block is one second of playing. <strong>Green = steady.</strong> <strong>Red = wobbly.</strong> Grey means silence. Good playing looks mostly green. Look for patterns — do red blocks cluster at the start, end, or on certain notes?</dd>
+
+            <dt>Register Comparison</dt>
+            <dd>Your bassoon has three pitch ranges: <em>Low</em> (very low notes), <em>Tenor</em> (middle, most common), and <em>High</em> (upper notes). This bar chart compares how stable you are in each range. A short bar in one register means that range needs work.</dd>
+
+            <dt>Embouchure Timeline</dt>
+            <dd>Only shown when you use the webcam. Four lines track your <em>mouth width</em>, <em>mouth height</em>, <em>jaw position</em>, and <em>lip tension</em> over time. <strong>Flat, steady lines = consistent technique.</strong> Sudden jumps mean your embouchure is changing mid-phrase.</dd>
+
+            <dt>Jaw vs Pitch</dt>
+            <dd>Only shown when you use the webcam. This overlays your jaw movement on your pitch changes. If the two lines move together (rise and fall at the same times), your jaw is directly influencing your pitch — worth addressing in practice.</dd>
+
+            <dt>Correlation Heatmap</dt>
+            <dd>Only shown when you use the webcam. Shows how strongly each part of your embouchure connects to your pitch stability. <strong>Dark blue = moving together (positive link). Dark red = moving opposite (negative link). White/grey = no connection.</strong> The number shown is the Pearson r value (−1 to +1).</dd>
+          </dl>
+        </div>
+
+        <div class="help-section">
+          <h3>Embouchure analysis (webcam only)</h3>
+          <dl class="help-dl">
+            <dt>Consistency score</dt>
+            <dd>How steady your overall mouth shape was. <strong>0.85+ = excellent, 0.65+ = good, below 0.4 = inconsistent.</strong></dd>
+
+            <dt>Jaw stability</dt>
+            <dd>How still your jaw was. 1.0 = perfectly still. Lower values mean your jaw moved around while playing.</dd>
+
+            <dt>Correlation table (r column)</dt>
+            <dd>The <em>r</em> value runs from −1 to +1. <strong>Close to +1 or −1 = strong connection between that movement and your pitch.</strong> Close to 0 = no connection. A <strong>*</strong> means the result is statistically significant (not just random chance).</dd>
+
+            <dt>Interpretation</dt>
+            <dd>Plain-English takeaways automatically generated from your results. These are the most actionable lines — start here when deciding what to work on.</dd>
+          </dl>
+        </div>
+
+        <div class="help-section">
+          <h3>Unstable regions table</h3>
+          <p>Each row is a specific moment where your pitch wobbled most. The <em>Note</em> column shows which note you were playing — useful for identifying which notes consistently give you trouble.</p>
+        </div>
+
+        <div class="help-section">
+          <h3>Register breakdown table</h3>
+          <p>Shows your stability score and number of wobbly moments for each of the three bassoon registers. If your <em>High</em> register score is much lower than <em>Tenor</em>, focus your practice on upper-register tone control.</p>
+        </div>
+
+        <div class="help-section">
+          <h3>Tips for better results</h3>
+          <ul class="help-tips">
+            <li>Play long tones for the clearest data — short notes are harder to analyze.</li>
+            <li>Record in a quiet room; background noise lowers <em>Voiced %</em>.</li>
+            <li>If using the webcam, sit still and face the camera directly so your face is visible the whole time.</li>
+            <li>Try recording the same passage before and after focused practice to track improvement.</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <main>
+
+    <!-- Input panel -->
+    <section class="card" id="input-panel">
+      <h2>Input</h2>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="record">Record</button>
+        <button class="tab" data-tab="upload">Upload Files</button>
+      </div>
+
+      <!-- Record tab -->
+      <div class="tab-content active" id="tab-record">
+        <label for="duration">Duration (seconds)</label>
+        <input type="range" id="duration" min="1" max="60" value="10" step="1" />
+        <span id="duration-label">10 s</span>
+
+        <label for="save-as">Save recording as (optional)</label>
+        <input type="text" id="save-as" placeholder="e.g. bb3_long_tone" />
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="with-video" />
+          <span>Track embouchure with webcam</span>
+        </label>
+        <p class="hint" id="video-hint">Records webcam in parallel and analyzes mouth/jaw motion via MediaPipe.</p>
+
+        <button class="btn-primary" id="btn-record">
+          <span id="btn-record-text">Start Recording</span>
+        </button>
+      </div>
+
+      <!-- Upload tab -->
+      <div class="tab-content" id="tab-upload">
+        <label for="wav-file">Audio file (WAV)</label>
+        <input type="file" id="wav-file" accept=".wav,audio/wav" />
+
+        <label for="video-file">Video file (optional, MP4/AVI)</label>
+        <input type="file" id="video-file" accept=".mp4,.avi,video/mp4,video/x-msvideo" />
+
+        <button class="btn-primary" id="btn-upload">Analyze File(s)</button>
+      </div>
+
+      <div id="status-bar" class="status hidden"></div>
+    </section>
+
+    <!-- Summary panel -->
+    <section class="card hidden" id="summary-panel">
+      <h2>Summary</h2>
+      <div class="summary-grid">
+        <div class="stat">
+          <span class="stat-label">Rating</span>
+          <span class="stat-value" id="s-rating">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Stability score</span>
+          <span class="stat-value" id="s-score">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Mean pitch</span>
+          <span class="stat-value" id="s-note">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Mean bias</span>
+          <span class="stat-value" id="s-bias">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Tendency</span>
+          <span class="stat-value" id="s-tendency">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Voiced</span>
+          <span class="stat-value" id="s-voiced">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Duration</span>
+          <span class="stat-value" id="s-duration">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Unstable regions</span>
+          <span class="stat-value" id="s-unstable">—</span>
+        </div>
+        <div class="stat hidden" id="stat-emb">
+          <span class="stat-label">Embouchure</span>
+          <span class="stat-value" id="s-embouchure">—</span>
+        </div>
+        <div class="stat hidden" id="stat-corr">
+          <span class="stat-label">Overall |r|</span>
+          <span class="stat-value" id="s-correlation">—</span>
+        </div>
+        <div class="stat hidden" id="stat-face">
+          <span class="stat-label">Face detected</span>
+          <span class="stat-value" id="s-face">—</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Plots panel -->
+    <section class="card hidden" id="plots-panel">
+      <h2>Visualizations</h2>
+      <div class="plot-tabs" id="plot-tabs">
+        <button class="plot-tab active" data-plot="pitch_contour">Pitch Contour</button>
+        <button class="plot-tab" data-plot="stability_heatmap">Stability Heatmap</button>
+        <button class="plot-tab" data-plot="register_comparison">Register Comparison</button>
+        <button class="plot-tab hidden" data-plot="embouchure_timeline">Embouchure Timeline</button>
+        <button class="plot-tab hidden" data-plot="embouchure_intonation">Jaw vs Pitch</button>
+        <button class="plot-tab hidden" data-plot="correlation_heatmap">Correlation Heatmap</button>
+      </div>
+      <div id="plot-container">
+        <img id="plot-img" src="" alt="Analysis plot" />
+      </div>
+      <button class="btn-secondary" id="btn-download-plot">Download PNG</button>
+    </section>
+
+    <!-- Embouchure panel -->
+    <section class="card hidden" id="embouchure-panel">
+      <h2>Embouchure Analysis</h2>
+      <div class="summary-grid">
+        <div class="stat">
+          <span class="stat-label">Consistency</span>
+          <span class="stat-value" id="e-consistency">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Jaw stability</span>
+          <span class="stat-value" id="e-jaw">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Mean mouth width</span>
+          <span class="stat-value" id="e-mw">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Mouth width variance</span>
+          <span class="stat-value" id="e-mwv">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Mean lip tension</span>
+          <span class="stat-value" id="e-lt">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Lip tension variance</span>
+          <span class="stat-value" id="e-ltv">—</span>
+        </div>
+      </div>
+
+      <h3 class="sub-h">Correlation: Embouchure vs Intonation</h3>
+      <table id="correlation-table">
+        <thead>
+          <tr>
+            <th>Pair</th>
+            <th>r</th>
+            <th>p-value</th>
+            <th>Strength</th>
+          </tr>
+        </thead>
+        <tbody id="correlation-body"></tbody>
+      </table>
+
+      <h3 class="sub-h">Per-Register Correlation (|r|)</h3>
+      <table id="reg-corr-table">
+        <thead>
+          <tr><th>Register</th><th>|r|</th></tr>
+        </thead>
+        <tbody id="reg-corr-body"></tbody>
+      </table>
+
+      <h3 class="sub-h">Interpretation</h3>
+      <ul id="interpretation-list" class="interpretation"></ul>
+    </section>
+
+    <!-- Unstable regions table -->
+    <section class="card hidden" id="regions-panel">
+      <h2>Unstable Regions</h2>
+      <p class="hint">Regions where pitch variance exceeded the stability threshold.</p>
+      <table id="regions-table">
+        <thead>
+          <tr>
+            <th>Start (s)</th>
+            <th>End (s)</th>
+            <th>Note</th>
+            <th>Variance (cents²)</th>
+          </tr>
+        </thead>
+        <tbody id="regions-body"></tbody>
+      </table>
+      <p class="no-data hidden" id="no-regions">No unstable regions detected.</p>
+    </section>
+
+    <!-- Register breakdown -->
+    <section class="card hidden" id="register-panel">
+      <h2>Register Breakdown</h2>
+      <table id="register-table">
+        <thead>
+          <tr>
+            <th>Register</th>
+            <th>% Time</th>
+            <th>Mean stability</th>
+            <th>Unstable regions</th>
+          </tr>
+        </thead>
+        <tbody id="register-body"></tbody>
+      </table>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Bassoon Intonation Stability Analyzer &mdash; with MediaPipe embouchure tracking</p>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

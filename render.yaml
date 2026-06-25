@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: bassoon-intonation-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 180
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: MAX_UPLOAD_MB
+        value: "100"
+      - key: CORS_ORIGIN
+        value: "*"

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reed Journal — Bassoon Intonation Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/product.css"/>
+  <link rel="icon" href="/static/bassoon-icon.svg" type="image/svg+xml"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .page-header { display:flex; align-items:center; gap:0.9rem; margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:var(--p-rule); }
+    .page-header h1 { font-family:'Lora',Georgia,serif; font-size:1.25rem; font-weight:600; color:var(--p-text); line-height:1.2; }
+    .page-header .sub { font-size:0.75rem; color:var(--p-muted); margin-top:0.2rem; }
+
+    /* Lifecycle badges */
+    .lifecycle-badge { display:inline-block; font-size:0.68rem; font-weight:600; padding:0.15rem 0.55rem; border-radius:99px; vertical-align:middle; }
+    .lifecycle-new       { background:rgba(148,163,184,0.15); color:#94a3b8; }
+    .lifecycle-breaking  { background:rgba(176,125,46,0.18);  color:#b07d2e; }
+    .lifecycle-peak      { background:rgba(78,138,66,0.22);   color:#6db85f; }
+    .lifecycle-declining { background:rgba(201,148,64,0.18);  color:#c99440; }
+    .lifecycle-dead      { background:rgba(155,50,40,0.18);   color:#c0564a; }
+
+    /* Reed cards */
+    .reed-card { padding:1rem 0; border-bottom:1px solid var(--p-border); }
+    .reed-card:last-child { border-bottom:none; }
+    .reed-score-circle {
+      width:48px; height:48px; border-radius:50%; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:0.85rem; font-weight:700; border:2px solid var(--p-border);
+    }
+    .reed-detail-row { display:flex; gap:1rem; flex-wrap:wrap; margin-top:0.5rem; }
+    .reed-detail { font-size:0.78rem; }
+    .reed-detail .lbl { color:var(--p-muted); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em; display:block; margin-bottom:0.1rem; }
+    .reed-detail .val { color:var(--p-text); font-weight:600; }
+
+    /* Star rating */
+    .star-row { display:flex; gap:0.3rem; margin:0.15rem 0; }
+    .star { font-size:1.1rem; cursor:pointer; color:var(--p-border); transition:color 0.1s; line-height:1; }
+    .star.active { color:#b07d2e; }
+
+    /* Field hint text */
+    .field-hint { font-size:0.72rem; color:var(--p-muted); margin-top:0.25rem; line-height:1.4; }
+
+    /* Step counter */
+    .steps-header { display:flex; gap:0.5rem; align-items:center; margin-bottom:1rem; }
+    .step-chip { font-size:0.7rem; font-weight:700; padding:0.2rem 0.6rem; border-radius:99px; background:var(--p-raised); color:var(--p-muted); }
+    .step-chip.active { background:rgba(176,125,46,0.2); color:var(--p-amber); }
+
+    /* Comparison steps */
+    .comp-steps { display:flex; flex-direction:column; gap:0.6rem; margin-bottom:1rem; }
+    .comp-step { display:flex; gap:0.75rem; align-items:flex-start; }
+    .comp-step-num { width:22px; height:22px; border-radius:50%; border:1.5px solid var(--p-amber); color:var(--p-amber); font-size:0.7rem; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:0.1rem; }
+    .comp-step p { font-size:0.83rem; color:var(--p-text-sub); line-height:1.5; margin:0; }
+    .comp-step strong { color:var(--p-text); }
+
+    /* Lifecycle selector inline */
+    .lc-selector { display:flex; gap:0.4rem; flex-wrap:wrap; margin-top:0.5rem; }
+    .lc-btn { font-size:0.7rem; font-weight:600; padding:0.25rem 0.6rem; border-radius:99px; border:1px solid var(--p-border); background:transparent; color:var(--p-muted); cursor:pointer; transition:all 0.12s; }
+    .lc-btn:hover { border-color:var(--p-amber); color:var(--p-text); }
+    .lc-btn.selected { border-color:var(--p-amber); background:rgba(176,125,46,0.12); color:var(--p-amber); }
+
+    #comp-note-display { color:#b07d2e !important; }
+  </style>
+</head>
+<body class="product-page">
+
+  <nav class="app-nav">
+    <a href="/" aria-label="Home">
+      <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+      Home
+    </a>
+    <a href="/practice" aria-label="Practice Session">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 10l3-3 3 3M12 7v10"/></svg>
+      Practice
+    </a>
+    <a href="/reeds" class="active" aria-label="Reed Journal">
+      <svg viewBox="0 0 24 24"><path d="M12 2c0 0-6 4-6 10a6 6 0 0012 0c0-6-6-10-6-10z"/><path d="M12 12v6"/></svg>
+      Reeds
+    </a>
+    <a href="/progress" aria-label="Progress Overview">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Progress
+    </a>
+  </nav>
+
+  <main class="product-main">
+
+    <div class="page-header">
+      <img src="/static/bassoon-icon.svg" width="42" height="42" alt="Bassoon" aria-hidden="true"/>
+      <div>
+        <h1>Reed Journal</h1>
+        <p class="sub">Keep notes on each reed so you always know which one plays best</p>
+      </div>
+    </div>
+
+    <!-- What is this? (collapsible, open by default for new users) -->
+    <div class="p-card" id="explainer-card">
+      <details class="how-to-guide" id="reed-explainer">
+        <summary>What is the Reed Journal?</summary>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div><strong>Log a reed</strong> — give it a name and rate how it plays. Takes 30 seconds.</div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div><strong>Test its stability</strong> — press Record below and play a simple scale. The app measures how in-tune the reed keeps you across three registers.</div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div><strong>Compare</strong> — once you have two or more reeds tested, a comparison chart appears. Use it to pick the right reed for a performance or lesson.</div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div><strong>Update as reeds age</strong> — reeds last about 15–20 hours of playing. Tap the stage button on a reed card to mark it as Breaking in → Peak → Declining.</div>
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <!-- ── ADD A REED ──────────────────────────────────────────────── -->
+    <div class="p-card">
+      <h2 style="margin-bottom:0.25rem">Add a Reed</h2>
+      <p style="font-size:0.8rem;color:var(--p-muted);margin-bottom:1rem;line-height:1.5">Only the name is required. Fill in the rest now or later.</p>
+
+      <!-- Name -->
+      <label class="p-label" for="reed-name-input">Reed name <span style="color:var(--p-red-lt)">*</span></label>
+      <input class="p-input" id="reed-name-input" placeholder="e.g. Reed A, Fox #3, Handmade Jan 2026" style="margin-bottom:0.75rem"/>
+
+      <!-- How does it respond? -->
+      <div style="margin-top:0.85rem">
+        <label class="p-label">How quickly does it start speaking?</label>
+        <div class="star-row" id="response-stars">
+          <span class="star" data-val="1" title="Barely speaks">★</span>
+          <span class="star" data-val="2" title="Sluggish">★</span>
+          <span class="star" data-val="3" title="Average">★</span>
+          <span class="star" data-val="4" title="Good">★</span>
+          <span class="star" data-val="5" title="Immediate">★</span>
+        </div>
+        <input type="hidden" id="reed-response-input" value=""/>
+      </div>
+
+      <!-- Intonation tendency -->
+      <div style="margin-top:0.85rem">
+        <label class="p-label">Does it pull sharp or flat?</label>
+        <div style="display:flex;gap:0.5rem;margin-top:0.3rem" id="tendency-btns">
+          <button type="button" class="lc-btn" data-val="flat">Flat</button>
+          <button type="button" class="lc-btn" data-val="centered">Centered ✓</button>
+          <button type="button" class="lc-btn" data-val="sharp">Sharp</button>
+        </div>
+        <input type="hidden" id="reed-tendency-input" value=""/>
+      </div>
+
+      <!-- Resistance -->
+      <div style="margin-top:0.85rem">
+        <label class="p-label">How does the airflow feel?</label>
+        <div style="display:flex;gap:0.5rem;margin-top:0.3rem" id="resistance-btns">
+          <button type="button" class="lc-btn" data-val="stuffy">Stuffy — hard to blow</button>
+          <button type="button" class="lc-btn" data-val="balanced">Balanced</button>
+          <button type="button" class="lc-btn" data-val="airy">Airy — too easy</button>
+        </div>
+        <input type="hidden" id="reed-resistance-input" value=""/>
+      </div>
+
+      <!-- Lifecycle -->
+      <div style="margin-top:0.85rem">
+        <label class="p-label">Where is this reed in its life?</label>
+        <div class="lc-selector" id="lifecycle-btns">
+          <button type="button" class="lc-btn selected" data-val="new">New — just got it</button>
+          <button type="button" class="lc-btn" data-val="breaking-in">Breaking in — first few hours</button>
+          <button type="button" class="lc-btn" data-val="peak">Peak — playing great</button>
+          <button type="button" class="lc-btn" data-val="declining">Declining — past its best</button>
+        </div>
+        <input type="hidden" id="reed-lifecycle-input" value="new"/>
+      </div>
+
+      <!-- Notes -->
+      <div style="margin-top:0.85rem">
+        <label class="p-label" for="reed-notes-input">Any other notes? <span style="color:var(--p-muted)">(optional)</span></label>
+        <input class="p-input" id="reed-notes-input"
+               placeholder="e.g. Good low register, cracks on high F, needs wire tightening"/>
+      </div>
+
+      <button class="p-btn" style="margin-top:1rem;width:100%" onclick="addReed()">Save Reed</button>
+      <div id="add-reed-msg" style="font-size:0.82rem;color:var(--p-amber);margin-top:0.5rem;display:none;text-align:center"></div>
+    </div>
+
+    <!-- ── YOUR REEDS ─────────────────────────────────────────────── -->
+    <div class="p-card" id="reeds-list-card">
+      <h2>Your Reeds</h2>
+      <div id="reeds-empty" style="display:none;text-align:center;padding:1.5rem 0;color:var(--p-muted);font-size:0.88rem">
+        <div style="font-size:2rem;margin-bottom:0.5rem">🎵</div>
+        Add your first reed above to start tracking.
+      </div>
+      <div id="reeds-list"></div>
+    </div>
+
+    <!-- ── STABILITY TEST ─────────────────────────────────────────── -->
+    <div class="p-card" id="record-comparison-card" style="display:none">
+      <h2>Test Reed Stability</h2>
+
+      <p style="font-size:0.78rem;color:var(--p-muted);margin-bottom:0.75rem">
+        Select a reed, press Record, and play <strong style="color:var(--p-amber)">C3 → G3 → C4 → G4 → C5</strong> — hold each note ~2 s.
+      </p>
+
+      <label class="p-label" for="comp-reed-select">Which reed are you testing?</label>
+      <select class="p-input" id="comp-reed-select" style="margin-bottom:1rem"></select>
+
+      <!-- Recording status bar -->
+      <div class="rec-status-bar" id="comp-rec-status">
+        <span class="rec-dot"></span>
+        <span id="comp-rec-status-text">Recording…</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.75rem;padding:0.5rem 0">
+        <div id="comp-note-display" style="font-size:1.75rem;font-weight:700;letter-spacing:0.05em">C3 → C5</div>
+        <button class="rec-btn" id="comp-rec-btn" onclick="recordComparison()">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <div id="comp-rec-label" style="font-size:0.85rem;color:var(--p-muted)">Tap to record (15 s)</div>
+      </div>
+    </div>
+
+    <!-- ── COMPARISON RESULTS ─────────────────────────────────────── -->
+    <div class="p-card" id="comparison-results-card" style="display:none">
+      <h2>Reed Comparison</h2>
+      <p style="font-size:0.8rem;color:var(--p-muted);margin-bottom:0.85rem">Higher bars = more stable intonation. Use this to pick your best reed for a performance.</p>
+      <canvas id="chart-comparison" height="200"></canvas>
+      <div id="comparison-recommendation" class="p-feedback info" style="margin-top:0.75rem;display:none"></div>
+      <div id="comparison-reg-breakdown" style="margin-top:1rem"></div>
+    </div>
+
+  </main>
+
+  <script type="module" src="/static/js/reeds.js"></script>
+</body>
+</html>

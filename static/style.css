@@ -1,0 +1,478 @@
+/* ── Reset & base ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Core palette — derived from the instrument */
+  --bg:             #1A1A1A;   /* matte black keywork */
+  --surface:        #2A2218;   /* oiled boot joint interior */
+  --surface-raised: #332A1C;   /* slightly lighter wood (stat boxes) */
+  --border:         #3D3020;   /* wood joint seam */
+  --accent:         #5C2E1A;   /* deep mahogany — primary actions */
+  --accent2:        #C8874A;   /* aged maple — secondary labels */
+  --danger:         #C0392B;   /* muted red */
+  --text:           #E8D9B0;   /* dried reed straw — primary text */
+  --muted:          #8A7A60;   /* mid-tone between straw and seam */
+
+  /* Typography */
+  --font:    'Lora', Georgia, serif;
+  --font-ui: 'Inter', system-ui, sans-serif;
+
+  /* Geometry */
+  --radius:    4px;
+  --radius-sm: 2px;
+
+  /* Amber accent — active states and score highlights */
+  --amber:     #b07d2e;
+
+  /* Derived */
+  --accent-fg: #E8D9B0;
+  --rule:      1px solid var(--border);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Layout ───────────────────────────────────────────────────── */
+header {
+  padding: 2rem 2.5rem 1.5rem;
+  border-bottom: var(--rule);
+  position: relative;
+}
+header h1 {
+  font-family: var(--font);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--text);
+}
+header .subtitle { color: var(--muted); font-size: 0.9rem; margin-top: 0.25rem; }
+
+main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  grid-template-rows: auto;
+  gap: 1.25rem;
+  padding: 1.5rem 2.5rem;
+  align-items: start;
+}
+
+footer {
+  text-align: center;
+  padding: 1rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  border-top: var(--rule);
+}
+
+/* ── Cards ────────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: var(--rule);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+.card h2 {
+  font-family: var(--font);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+.hidden { display: none !important; }
+
+/* Input panel — left border references the instrument's vertical form */
+#input-panel  {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  border-left: 4px solid var(--accent);
+}
+#summary-panel { grid-column: 2; grid-row: 1; }
+#plots-panel   { grid-column: 2; grid-row: 2; }
+#embouchure-panel { grid-column: 1 / 3; grid-row: 3; }
+#regions-panel { grid-column: 1 / 3; grid-row: 4; }
+#register-panel { grid-column: 1 / 3; grid-row: 5; }
+
+/* ── Tabs ─────────────────────────────────────────────────────── */
+.tabs, .plot-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+.tab, .plot-tab {
+  background: transparent;
+  border: var(--rule);
+  color: var(--muted);
+  border-radius: var(--radius-sm);
+  padding: 0.35rem 0.9rem;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  transition: all 0.15s;
+}
+.tab.active, .plot-tab.active {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: var(--accent-fg);
+}
+.tab-content { display: none; flex-direction: column; gap: 0.75rem; }
+.tab-content.active { display: flex; }
+
+/* ── Form elements ────────────────────────────────────────────── */
+label {
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 0.15rem;
+}
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent2);
+}
+input[type="text"], input[type="file"] {
+  width: 100%;
+  background: var(--bg);
+  border: var(--rule);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 0.45rem 0.75rem;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+}
+input[type="text"]:focus { outline: 2px solid var(--accent2); border-color: transparent; }
+
+/* ── Buttons ──────────────────────────────────────────────────── */
+.btn-primary, .btn-secondary {
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.6rem 1.2rem;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-top: 0.5rem;
+}
+.btn-primary  { background: var(--amber); color: var(--accent-fg); }
+.btn-secondary {
+  background: transparent;
+  border: var(--rule);
+  color: var(--muted);
+}
+.btn-primary:hover  { opacity: 0.85; }
+.btn-secondary:hover { border-color: var(--accent2); color: var(--text); }
+.btn-primary:active { opacity: 0.9; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Status bar ───────────────────────────────────────────────── */
+.status {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  background: var(--surface-raised);
+  border-left: 3px solid var(--accent2);
+  color: var(--text);
+}
+.status.error  { border-left-color: var(--danger); color: #E07070; }
+.status.success { border-left-color: #6B8F5E; }
+
+/* ── Summary grid ─────────────────────────────────────────────── */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+.stat {
+  background: var(--surface-raised);
+  border: var(--rule);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.stat-label {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.stat-value {
+  font-family: var(--font);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ── Plots ────────────────────────────────────────────────────── */
+#plot-container {
+  background: #F5F0E8;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin: 0.75rem 0;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#plot-img { width: 100%; display: block; }
+
+/* ── Tables ───────────────────────────────────────────────────── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  border-bottom: var(--rule);
+}
+td {
+  font-family: var(--font-ui);
+  padding: 0.55rem 0.75rem;
+  border-bottom: var(--rule);
+  color: var(--text);
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(200, 135, 74, 0.06); }
+
+.hint { font-family: var(--font-ui); font-size: 0.82rem; color: var(--muted); margin-bottom: 0.75rem; }
+.no-data { font-family: var(--font-ui); color: var(--muted); font-size: 0.88rem; margin-top: 0.5rem; }
+
+/* ── Recording pulse animation ────────────────────────────────── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+.recording { animation: pulse 1.2s ease-in-out infinite; color: var(--danger); }
+
+/* ── Checkbox row ─────────────────────────────────────────────── */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  color: var(--text);
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+.checkbox-label input[type="checkbox"] {
+  accent-color: var(--accent2);
+  width: 1rem;
+  height: 1rem;
+}
+
+/* ── Sub-headers inside cards ─────────────────────────────────── */
+.sub-h {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent2);
+  margin: 1.25rem 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ── Interpretation list ──────────────────────────────────────── */
+.interpretation {
+  list-style: none;
+  margin-top: 0.5rem;
+}
+.interpretation li {
+  font-family: var(--font-ui);
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.4rem;
+  background: rgba(200, 135, 74, 0.08);
+  border-left: 3px solid var(--accent2);
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+}
+.interpretation li:last-child { margin-bottom: 0; }
+
+/* ── Header row ───────────────────────────────────────────────── */
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* ── Bocal mark (abstract SVG compositional element) ─────────── */
+.bocal-mark {
+  position: absolute;
+  right: 2.5rem;
+  top: 1.5rem;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* ── Help button ──────────────────────────────────────────────── */
+.btn-help {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--accent2);
+  color: var(--accent2);
+  border-radius: var(--radius);
+  padding: 0.45rem 1rem;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.btn-help:hover { background: var(--accent2); color: var(--bg); }
+
+/* ── Help modal overlay ───────────────────────────────────────── */
+.help-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem 1rem;
+  overflow-y: auto;
+}
+.help-overlay.hidden { display: none !important; }
+
+.help-modal {
+  background: var(--surface);
+  border: var(--rule);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 4rem);
+}
+
+.help-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: var(--rule);
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.help-header h2 {
+  font-family: var(--font);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+.help-close {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  transition: color 0.15s;
+}
+.help-close:hover { color: var(--text); }
+
+.help-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.help-section h3 {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.75rem;
+}
+.help-section p {
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+  line-height: 1.65;
+}
+.help-section p:last-child { margin-bottom: 0; }
+
+/* Definition list */
+.help-dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.5rem 1.25rem;
+  font-size: 0.88rem;
+}
+.help-dl dt {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  color: var(--accent2);
+  padding-top: 0.1rem;
+  white-space: nowrap;
+}
+.help-dl dd {
+  font-family: var(--font-ui);
+  color: var(--text);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Tips list */
+.help-tips {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.help-tips li {
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  color: var(--text);
+  padding: 0.5rem 0.75rem;
+  background: rgba(92, 46, 26, 0.12);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  line-height: 1.55;
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  main {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+  #input-panel, #summary-panel, #plots-panel,
+  #regions-panel, #register-panel, #embouchure-panel {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .summary-grid { grid-template-columns: repeat(2, 1fr); }
+  .bocal-mark { display: none; }
+}

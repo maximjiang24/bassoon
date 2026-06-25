@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Progress — Bassoon Intonation Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/product.css"/>
+  <link rel="icon" href="/static/bassoon-icon.svg" type="image/svg+xml"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ── Progress-page overrides ───────────────────────────── */
+    .p-page-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .p-page-header svg { flex-shrink: 0; opacity: 0.85; }
+    .p-page-header h1 {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--p-text);
+      line-height: 1.2;
+    }
+    .p-page-header .sub {
+      font-size: 0.8rem;
+      color: var(--p-muted);
+      margin-top: 0.2rem;
+    }
+    .p-section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--p-amber);
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      margin-bottom: 0.6rem;
+    }
+    .p-card h2 {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--p-text);
+      margin-bottom: 0.3rem;
+    }
+    .p-card .card-sub {
+      font-size: 0.78rem;
+      color: var(--p-muted);
+      margin-bottom: 0.9rem;
+      line-height: 1.5;
+    }
+    .highlight-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .highlight-grid .p-card { margin-bottom: 0; }
+    .score-badge {
+      font-size: 1.8rem;
+      font-weight: 700;
+      line-height: 1;
+      margin: 0.25rem 0;
+    }
+    .reg-legend {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .reg-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      color: var(--p-muted);
+    }
+    .reg-legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .improvement-banner {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: rgba(176,125,46,0.1);
+      border: 1px solid rgba(176,125,46,0.3);
+      border-radius: 8px;
+      padding: 0.9rem 1rem;
+      margin-bottom: 1rem;
+    }
+    .improvement-banner .icon { font-size: 1.4rem; flex-shrink: 0; }
+    .improvement-banner #improvement-text { font-size: 0.9rem; color: var(--p-text); }
+    .empty-bassoon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      padding: 2.5rem 1rem;
+      text-align: center;
+    }
+    .empty-bassoon p { font-size: 0.9rem; color: var(--p-muted); max-width: 280px; line-height: 1.6; }
+    .empty-bassoon a {
+      text-decoration: none;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body class="product-page">
+
+  <nav class="app-nav">
+    <a href="/" aria-label="Home">
+      <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+      Home
+    </a>
+    <a href="/practice" aria-label="Practice">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 10l3-3 3 3M12 7v10"/></svg>
+      Practice
+    </a>
+    <a href="/reeds" aria-label="Reeds">
+      <svg viewBox="0 0 24 24"><path d="M12 2c0 0-6 4-6 10a6 6 0 0012 0c0-6-6-10-6-10z"/><path d="M12 12v6"/></svg>
+      Reeds
+    </a>
+    <a href="/progress" class="active" aria-label="Progress">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Progress
+    </a>
+  </nav>
+
+  <main class="product-main">
+
+    <!-- Page header -->
+    <div class="p-page-header">
+      <img src="/static/bassoon-icon.svg" width="44" height="44" alt="Bassoon" aria-hidden="true" style="flex-shrink:0;opacity:0.9"/>
+      <div>
+        <h1>Progress Overview</h1>
+        <p class="sub">Session history</p>
+      </div>
+      <button class="p-btn-outline" onclick="exportData()"
+              style="margin-left:auto;font-size:0.78rem;padding:0.4rem 0.8rem;white-space:nowrap">
+        Export CSV
+      </button>
+    </div>
+
+    <!-- Empty state -->
+    <div id="empty-state" class="p-card" style="display:none">
+      <div class="empty-bassoon">
+        <img src="/static/bassoon-icon.svg" width="60" height="60" alt="Bassoon" aria-hidden="true"
+             style="opacity:0.15;margin-bottom:0.5rem"/>
+        <p>Complete 3 practice sessions to unlock your progress charts — stability trends, register breakdown, and note-by-note heatmap.</p>
+        <div class="score-legend" style="justify-content:center;border-top:none;padding-top:0.5rem;margin-top:0">
+          <div class="score-legend-item"><div class="score-legend-dot" style="background:var(--p-green-lt)"></div>80–100 Excellent</div>
+          <div class="score-legend-item"><div class="score-legend-dot" style="background:var(--p-amber)"></div>60–79 Good</div>
+          <div class="score-legend-item"><div class="score-legend-dot" style="background:#c99440"></div>40–59 Fair</div>
+          <div class="score-legend-item"><div class="score-legend-dot" style="background:var(--p-red-lt)"></div>0–39 Needs work</div>
+        </div>
+        <a href="/practice" class="p-btn">Start a session</a>
+      </div>
+    </div>
+
+    <!-- Improvement banner -->
+    <div class="improvement-banner" id="improvement-card" style="display:none">
+      <span class="icon">📈</span>
+      <div id="improvement-text"></div>
+    </div>
+
+    <!-- Best / worst -->
+    <div class="highlight-grid" id="highlight-cards" style="display:none">
+      <div class="p-card" id="best-card">
+        <div class="p-section-label">Best session</div>
+        <div class="score-badge" id="best-name" style="color:var(--p-green)"></div>
+        <div id="best-meta" style="font-size:0.78rem;color:var(--p-muted)"></div>
+      </div>
+      <div class="p-card" id="worst-card">
+        <div class="p-section-label">Needs most work</div>
+        <div class="score-badge" id="worst-name" style="color:var(--p-red)"></div>
+        <div id="worst-meta" style="font-size:0.78rem;color:var(--p-muted)"></div>
+      </div>
+    </div>
+
+    <!-- Overall trend -->
+    <div class="p-card" id="trend-card" style="display:none">
+      <h2>Stability Score Over Time</h2>
+      <p class="card-sub" title="Each dot is one session. Higher = more stable intonation across all three registers."></p>
+      <canvas id="chart-trend" height="160"></canvas>
+    </div>
+
+    <!-- Register trends -->
+    <div class="p-card" id="reg-card" style="display:none">
+      <h2>Register Trends</h2>
+      <p class="card-sub"></p>
+      <div class="reg-legend">
+        <div class="reg-legend-item"><div class="reg-legend-dot" style="background:#818cf8"></div>Low register</div>
+        <div class="reg-legend-item"><div class="reg-legend-dot" style="background:#14b8a6"></div>Tenor register</div>
+        <div class="reg-legend-item"><div class="reg-legend-dot" style="background:#f472b6"></div>High register</div>
+      </div>
+      <canvas id="chart-registers" height="180"></canvas>
+    </div>
+
+    <!-- Note heatmap -->
+    <div class="p-card" id="heatmap-card" style="display:none">
+      <h2>Note Stability Heatmap</h2>
+      <p class="card-sub" title="Average stability score per note across all sessions. Red = problem areas to target in guided exercises."></p>
+      <div id="note-heatmap" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+    </div>
+
+    <!-- Reed history -->
+    <div class="p-card" id="reed-history-card" style="display:none">
+      <h2>Reed Performance History</h2>
+      <p class="card-sub" title="Stability scores by reed across sessions."></p>
+      <canvas id="chart-reeds" height="160"></canvas>
+    </div>
+
+  </main>
+
+  <script type="module" src="/static/js/charts.js"></script>
+</body>
+</html>

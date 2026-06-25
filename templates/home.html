@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bassoon Intonation Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/product.css"/>
+  <link rel="icon" href="/static/bassoon-icon.svg" type="image/svg+xml"/>
+</head>
+<body class="product-page">
+
+  <nav class="app-nav" aria-label="Main navigation">
+    <a href="/" class="active" aria-label="Home">
+      <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+      Home
+    </a>
+    <a href="/practice" aria-label="Practice Session">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 10l3-3 3 3M12 7v10"/></svg>
+      Practice
+    </a>
+    <a href="/reeds" aria-label="Reed Journal">
+      <svg viewBox="0 0 24 24"><path d="M12 2c0 0-6 4-6 10a6 6 0 0012 0c0-6-6-10-6-10z"/><path d="M12 12v6"/></svg>
+      Reeds
+    </a>
+    <a href="/progress" aria-label="Progress Overview">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Progress
+    </a>
+  </nav>
+
+  <main class="product-main">
+
+    <!-- Page header -->
+    <div class="page-header" style="display:flex;align-items:center;gap:0.9rem;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:var(--p-rule)">
+      <img src="/static/bassoon-icon.svg" width="42" height="42" alt="Bassoon" aria-hidden="true" style="opacity:0.9;flex-shrink:0"/>
+      <div>
+        <h1 style="font-family:'Lora',Georgia,serif;font-size:1.25rem;font-weight:600;color:var(--p-text);line-height:1.2">Bassoon Intonation Analyzer</h1>
+        <p style="font-size:0.75rem;color:var(--p-muted);margin-top:0.2rem">Real-time pitch stability analysis</p>
+      </div>
+    </div>
+
+    <!-- Hero: primary action -->
+    <div class="hero-card">
+      <div>
+        <h2>Ready to practice?</h2>
+        <p>Record yourself playing and get per-note stability scores, register breakdown, and targeted exercises based on your weakest notes.</p>
+      </div>
+      <div class="hero-actions">
+        <a href="/practice" class="p-btn" style="text-decoration:none;flex:1;min-width:140px">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.2"><circle cx="12" cy="12" r="9"/><path d="M9 10l3-3 3 3M12 7v10"/></svg>
+          Start Session
+        </a>
+        <a href="/practice#guided" class="p-btn-outline" style="text-decoration:none;flex:1;min-width:130px">Targeted Exercises</a>
+      </div>
+    </div>
+
+    <!-- At-a-glance stats -->
+    <div class="stat-row">
+      <div class="stat-pill">
+        <div class="label">Sessions</div>
+        <div class="value" id="stat-sessions" style="color:var(--p-amber)">—</div>
+      </div>
+      <div class="stat-pill">
+        <div class="label">This week</div>
+        <div class="value" id="stat-trend" style="color:var(--p-amber)">—</div>
+        <div class="sub" id="stat-trend-sub"></div>
+      </div>
+      <div class="stat-pill">
+        <div class="label">Active reed</div>
+        <div class="value" id="stat-reed" style="font-size:0.85rem;color:var(--p-amber)">—</div>
+      </div>
+    </div>
+
+    <!-- Module shortcuts -->
+    <div class="home-actions">
+      <a href="/reeds" class="big-btn">
+        <svg viewBox="0 0 24 24"><path d="M12 2c0 0-6 4-6 10a6 6 0 0012 0c0-6-6-10-6-10z"/><path d="M12 12v6"/></svg>
+        Reed Journal
+        <span class="btn-sub">Track &amp; compare reeds</span>
+      </a>
+      <a href="/progress" class="big-btn">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Progress
+        <span class="btn-sub">Charts &amp; session history</span>
+      </a>
+    </div>
+
+    <!-- Recent sessions -->
+    <div class="p-card" id="recent-card" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem">
+        <h2 style="margin:0">Recent Sessions</h2>
+        <a href="/progress" style="font-size:0.75rem;color:var(--p-amber);text-decoration:none">View all →</a>
+      </div>
+      <div id="recent-list"></div>
+    </div>
+
+    <!-- First-use welcome (hidden once sessions exist) -->
+    <div class="p-card" id="welcome-card">
+      <h2>New here?</h2>
+      <p style="font-size:0.85rem;color:var(--p-muted);margin-bottom:0.75rem;line-height:1.6">
+        Press Record on the Practice page and play for 15–30 seconds. The app scores each note separately — no setup needed.
+      </p>
+    </div>
+
+    <!-- How to use -->
+    <div class="p-card">
+      <details class="how-to-guide" id="how-to-details">
+        <summary>How to use this app</summary>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div><strong>Practice Session</strong> — press Record, play your bassoon for 15–30 s. The app detects each note and scores its stability individually. Scales, long tones, and passages all work.</div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div><strong>Targeted Exercises</strong> — the app identifies your weakest notes from past sessions and builds a short exercise set. Each exercise scores automatically.</div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div><strong>Reed Journal</strong> — log each reed with response rating, intonation tendency, and lifecycle stage. Record the standardised scale to compare stability across reeds.</div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div><strong>Progress</strong> — after 3 sessions your trend charts, register breakdown, and note heatmap unlock automatically. Keep practising and watch the data build.</div>
+          </div>
+        </div>
+        <div class="score-legend">
+          <div class="score-legend-item"><div class="score-legend-dot" style="background:var(--p-green-lt)"></div>80–100 Excellent</div>
+          <div class="score-legend-item"><div class="score-legend-dot" style="background:var(--p-amber)"></div>60–79 Good</div>
+          <div class="score-legend-item"><div class="score-legend-dot" style="background:#c99440"></div>40–59 Fair</div>
+          <div class="score-legend-item"><div class="score-legend-dot" style="background:var(--p-red-lt)"></div>0–39 Needs work</div>
+        </div>
+      </details>
+    </div>
+
+  </main>
+
+  <script type="module" src="/static/js/dashboard.js"></script>
+</body>
+</html>
