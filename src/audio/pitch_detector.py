@@ -3,6 +3,7 @@ Pitch detection and frequency conversion utilities.
 """
 
 import numpy as np
+import os
 
 try:
     import librosa
@@ -34,7 +35,7 @@ class PitchDetector:
         self,
         audio: np.ndarray,
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """Detect pitch over time using the pYIN algorithm.
+        """Detect pitch over time using the configured detector.
 
         Parameters
         ----------
@@ -60,10 +61,17 @@ class PitchDetector:
         if audio.size == 0:
             raise ValueError("audio array is empty")
 
-        # pYIN is used instead of plain autocorrelation because the bassoon's
-        # rich harmonic spectrum causes octave-doubling errors in simpler detectors.
-        # fmin/fmax are clamped to the bassoon's written sounding range (B♭1–E♭5)
-        # so the algorithm never chases harmonics above or below playable notes.
+        detector = os.environ.get("PITCH_DETECTOR", "yin").strip().lower()
+        if detector == "pyin":
+            return self._detect_pitch_pyin(audio)
+        return self._detect_pitch_yin(audio)
+
+    def _detect_pitch_pyin(
+        self,
+        audio: np.ndarray,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        # pYIN is more robust on complex bassoon tones, but it is too slow for
+        # Render's free-tier request timeout on cold starts.
         f0, voiced_flag, voiced_prob = librosa.pyin(
             audio,
             fmin=librosa.note_to_hz("Bb1"),
@@ -82,6 +90,48 @@ class PitchDetector:
         frequencies[~voiced_flag] = np.nan
 
         return times, frequencies, voiced_prob
+
+    def _detect_pitch_yin(
+        self,
+        audio: np.ndarray,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Fast hosted pitch detection using YIN plus an RMS voicing gate."""
+        frame_length = 2048
+        f0 = librosa.yin(
+            audio,
+            fmin=librosa.note_to_hz("Bb1"),
+            fmax=librosa.note_to_hz("Eb5"),
+            sr=self.sr,
+            hop_length=self.hop_length,
+            frame_length=frame_length,
+        )
+        times = librosa.times_like(f0, sr=self.sr, hop_length=self.hop_length)
+
+        rms = librosa.feature.rms(
+            y=audio,
+            frame_length=frame_length,
+            hop_length=self.hop_length,
+            center=True,
+        )[0]
+        if rms.size < f0.size:
+            rms = np.pad(rms, (0, f0.size - rms.size), mode="edge")
+        elif rms.size > f0.size:
+            rms = rms[:f0.size]
+
+        max_rms = float(np.max(rms)) if rms.size else 0.0
+        if max_rms <= 1e-8:
+            frequencies = np.full_like(f0, np.nan, dtype=float)
+            confidence = np.zeros_like(f0, dtype=float)
+            return times, frequencies, confidence
+
+        gate = max(max_rms * 0.02, float(np.percentile(rms, 20)) * 0.5, 1e-5)
+        voiced_flag = rms >= gate
+        confidence = np.clip(rms / max_rms, 0.0, 1.0)
+
+        frequencies = f0.astype(float, copy=True)
+        frequencies[~voiced_flag] = np.nan
+
+        return times, frequencies, confidence
 
     def hz_to_cents(self, freq: float) -> float:
         """Convert a frequency in Hz to cents relative to ``reference_freq``.
