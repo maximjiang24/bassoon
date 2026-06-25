@@ -28,7 +28,7 @@ export async function analyzeFile(audioFile, videoFile = null) {
   form.append('file', audioFile);
   if (videoFile) form.append('video', videoFile);
   const res  = await fetch('/api/analyze_file', { method: 'POST', body: form });
-  const data = await res.json();
+  const data = await readApiJson(res);
   if (!res.ok) throw new Error(data.error ?? 'Analysis failed');
   return data;
 }
@@ -44,9 +44,21 @@ export async function fetchFullResults() {
 export async function checkStatus() {
   try {
     const res = await fetch('/api/status');
-    return await res.json();
+    return await readApiJson(res);
   } catch {
     return { recording: false, has_results: false, video_available: false };
+  }
+}
+
+async function readApiJson(res) {
+  const text = await res.text();
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return {
+      error: `Server returned ${res.status} ${res.statusText || 'response'} instead of JSON.`,
+      raw: text.slice(0, 180),
+    };
   }
 }
 
